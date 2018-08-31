@@ -7,39 +7,43 @@
 //
 import UIKit
 
-protocol SendDataDelegate: class {
+// Closure Strong Reference Cycle
+
+class HTMLElement {
+    
+    let name: String
+    let text: String
+    
+    lazy var asHTML: () -> String = {
+        return "<\(self.name)>\(self.text)</\(self.name)>"
+    }
+    
+    //    lazy var asHTML: () -> String = { [weak self] in
+    //        guard let this = self else { return "" }
+    //        return "<\(this.name)>\(this.text)</\(this.name)>"
+    //    }
+    
+    init(name: String, text: String) {
+        self.name = name
+        self.text = text
+    }
+    
+    deinit {
+        print("HTMLElement \(name) is being deallocated")
+    }
     
 }
-
-class SendingVC: UIViewController {
-    
-    //   weak var delegate: SendDataDelegate? // 不會 memory leak
-    var delegate: SendDataDelegate? // 會 memory leak
-    
-    var receivingVC: ReceivingVC?
+class ViewConrtoller:UIViewController{
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        receivingVC = ReceivingVC()
+        var paragraph: HTMLElement? = HTMLElement(name: "p", text: "Some sample paragraph body text")
         
-        receivingVC = nil
+        paragraph?.asHTML() //<p>Some sample paragraph body text</p>
+        
+        paragraph = nil
+        
     }
     
-}
-
-class ReceivingVC: SendDataDelegate {
-    
-    lazy var sendingVC = SendingVC()
-    
-    init() {
-        
-        sendingVC.delegate = self
-        
-        print("sendingVC.delegate = self")
-    }
-    
-    deinit {
-        print("deinit了喲！")
-    }
 }
